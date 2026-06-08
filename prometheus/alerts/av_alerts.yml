@@ -1,0 +1,58 @@
+groups:
+  - name: av_device_alerts
+    interval: 30s
+    rules:
+
+      - alert: AVDeviceDown
+        expr: av_device_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "AV device {{ $labels.device_name }} is DOWN"
+          description: "{{ $labels.device_name }} ({{ $labels.device_type }}) at {{ $labels.ip }} has been unreachable for 1 minute."
+
+      - alert: AVStreamNotActive
+        expr: av_device_up == 1 and av_stream_active == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.device_name }} stream is not active"
+          description: "{{ $labels.device_name }} is reachable but has no active stream for 2 minutes."
+
+      - alert: AVHighCPU
+        expr: av_device_cpu_usage_percent > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU on {{ $labels.device_name }}"
+          description: "{{ $labels.device_name }} CPU is {{ $value }}% for 5 minutes."
+
+      - alert: AVHighTemperature
+        expr: av_device_temperature_celsius > 75
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High temperature on {{ $labels.device_name }}"
+          description: "{{ $labels.device_name }} temperature is {{ $value }}°C."
+
+      - alert: AVVideoNoSignal
+        expr: av_device_up == 1 and av_video_input_locked == 0
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "No video signal on {{ $labels.device_name }}"
+          description: "{{ $labels.device_name }} has no locked video input signal."
+
+      - alert: AVBMPresenterInterrupted
+        expr: av_stream_status{device_type="blackmagic_web_presenter"} == 4
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "BM Web Presenter stream INTERRUPTED – {{ $labels.device_name }}"
+          description: "{{ $labels.device_name }} livestream is in Interrupted state."

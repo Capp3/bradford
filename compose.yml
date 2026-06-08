@@ -1,0 +1,76 @@
+network:
+  frontend:
+    external: false
+  backend:
+    external: false
+
+volumes:
+  openavc-data:
+    driver: local
+  
+services:
+  openavc:
+    image: ghcr.io/open-avc/openavc:latest
+    container_name: openavc
+    network_mode: host
+    cap_add:
+      - NET_RAW
+    volumes:
+      - openavc-data:/data
+    restart: unless-stopped
+    # For serial/USB device passthrough, uncomment:
+    # devices:
+    #   - /dev/ttyUSB0:/dev/ttyUSB0
+  
+    prometheus:
+    image: prom/prometheus:v2.52.0
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:11.0.0
+    container_name: av_grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GF_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_ADMIN_PASSWORD:-changeme}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring
+
+  av_exporter:
+    build:
+      context: ./exporter
+      dockerfile: Dockerfile
+    container_name: av_exporter
+    restart: unless-stopped
+    environment:
+      - SCRAPE_INTERVAL=15
+      - EXPORTER_PORT=9200
+    volumes:
+      - ./config/devices.yml:/app/config/devices.yml:ro
+    ports:
+      - "9200:9200"
+    networks:
+      - monitoring

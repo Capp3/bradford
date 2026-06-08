@@ -1,0 +1,94 @@
+# AV Device Inventory
+# Update IP addresses to match your network
+
+kiloview_n5:
+  - id: n5_01
+    name: "N5 Unit 1"
+    ip: "192.168.1.101"
+    username: "admin"
+    password: "admin"
+  - id: n5_02
+    name: "N5 Unit 2"
+    ip: "192.168.1.102"
+    username: "admin"
+    password: "admin"
+  - id: n5_03
+    name: "N5 Unit 3"
+    ip: "192.168.1.103"
+    username: "admin"
+    password: "admin"
+  - id: n5_04
+    name: "N5 Unit 4"
+    ip: "192.168.1.104"
+    username: "admin"
+    password: "admin"
+
+kiloview_n6:
+  - id: n6_01
+    name: "N6 Unit 1"
+    ip: "192.168.1.111"
+    username: "admin"
+    password: "admin"
+  - id: n6_02
+    name: "N6 Unit 2"
+    ip: "192.168.1.112"
+    username: "admin"
+    password: "admin"
+  - id: n6_03
+    name: "N6 Unit 3"
+    ip: "192.168.1.113"
+    username: "admin"
+    password: "admin"
+  - id: n6_04
+    name: "N6 Unit 4"
+    ip: "192.168.1.114"
+    username: "admin"
+    password: "admin"
+  - id: n6_05
+    name: "N6 Unit 5"
+    ip: "192.168.1.115"
+    username: "admin"
+    password: "admin"
+  - id: n6_06
+    name: "N6 Unit 6"
+    ip: "192.168.1.116"
+    username: "admin"
+    password: "admin"
+  - id: n6_07
+    name: "N6 Unit 7"
+    ip: "192.168.1.117"
+    username: "admin"
+    password: "admin"
+  - id: n6_08
+    name: "N6 Unit 8"
+    ip: "192.168.1.118"
+    username: "admin"
+    password: "admin"
+  - id: n6_09
+    name: "N6 Unit 9"
+    ip: "192.168.1.119"
+    username: "admin"
+    password: "admin"
+  - id: n6_10
+    name: "N6 Unit 10"
+    ip: "192.168.1.120"
+    username: "admin"
+    password: "admin"
+  - id: n6_11
+    name: "N6 Unit 11"
+    ip: "192.168.1.121"
+    username: "admin"
+    password: "admin"
+  - id: n6_12
+    name: "N6 Unit 12"
+    ip: "192.168.1.122"
+    username: "admin"
+    password: "admin"
+
+blackmagic_web_presenter:
+  - id: bm_wp_01
+    name: "BM Web Presenter 1"
+    ip: "192.168.1.131"
+  - id: bm_wp_02
+    name: "BM Web Presenter 2"
+    ip: "192.168.1.132"

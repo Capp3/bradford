@@ -1,4 +1,4 @@
-network:
+networks:
   frontend:
     external: false
   backend:
@@ -6,8 +6,10 @@ network:
 
 volumes:
   openavc-data:
-    driver: local
-  
+  grafana_data:
+  influxdb2-data:
+  influxdb2-config:
+
 services:
   openavc:
     image: ghcr.io/open-avc/openavc:latest
@@ -22,22 +24,27 @@ services:
     # devices:
     #   - /dev/ttyUSB0:/dev/ttyUSB0
   
-    prometheus:
-    image: prom/prometheus:v2.52.0
-    container_name: prometheus
-    restart: unless-stopped
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=30d'
-      - '--web.enable-lifecycle'
+  influxdb2:
+    image: influxdb:2
+    container_name: av_influxdb2
     ports:
-      - "9090:9090"
+      - 8086:8086
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_ADMIN_TOKEN}
+      DOCKER_INFLUXDB_INIT_ORG: docs
+      DOCKER_INFLUXDB_INIT_BUCKET: home
+    volumes:
+      - type: volume
+        source: influxdb2-data
+        target: /var/lib/influxdb2
+      - type: volume
+        source: influxdb2-config
+        target: /etc/influxdb2
     networks:
-      - monitoring
+      backend:
 
   grafana:
     image: grafana/grafana:11.0.0
@@ -48,29 +55,44 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=${GF_ADMIN_PASSWORD:-changeme}
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_SERVER_ROOT_URL=http://localhost:3000
+      # Needed so the provisioned datasource can interpolate ${INFLUXDB_ADMIN_TOKEN}
+      - INFLUXDB_ADMIN_TOKEN=${INFLUXDB_ADMIN_TOKEN}
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
-      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
     ports:
       - "3000:3000"
     depends_on:
-      - prometheus
+      - influxdb2
+      - telegraf
     networks:
-      - monitoring
+      backend:
+      frontend:
 
-  av_exporter:
-    build:
-      context: ./exporter
-      dockerfile: Dockerfile
-    container_name: av_exporter
+  telegraf:
+    image: telegraf
+    container_name: av_telegraf
     restart: unless-stopped
-    environment:
-      - SCRAPE_INTERVAL=15
-      - EXPORTER_PORT=9200
-    volumes:
-      - ./config/devices.yml:/app/config/devices.yml:ro
-    ports:
-      - "9200:9200"
     networks:
-      - monitoring
+      - backend
+    env_file:
+      - .env
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - /etc:/hostfs/etc
+      - /proc:/hostfs/proc
+      - /sys:/hostfs/sys
+      - /var:/hostfs/var
+      - /run:/hostfs/run
+    environment:
+      - HOST_ETC=/hostfs/etc
+      - HOST_PROC=/hostfs/proc
+      - HOST_SYS=/hostfs/sys
+      - HOST_VAR=/hostfs/var
+      - HOST_RUN=/hostfs/run
+      - HOST_MOUNT_PREFIX=/hostfs
+    build:
+      context: ./telegraf
+      dockerfile: Dockerfile
+

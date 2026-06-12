@@ -1,3 +1,5 @@
 .env
 prometheus/data
 grafana/data
+**/.env*
+**/data/

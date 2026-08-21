@@ -1,0 +1,27 @@
+volumes:
+  openavc-data:
+  # companion-config:
+
+services:
+  openavc:
+    image: ghcr.io/open-avc/openavc:latest
+    container_name: openavc
+    network_mode: host
+    cap_add:
+      - NET_RAW
+    volumes:
+      - openavc-data:/data
+    restart: unless-stopped
+    # For serial/USB device passthrough, uncomment:
+    # devices:
+    #   - /dev/ttyUSB0:/dev/ttyUSB0
+
+  # companion:
+  #   image: ghcr.io/bitfocus/companion/companion:latest
+  #   restart: unless-stopped
+  #   ports:
+  #     - '8000:8000' # Admin UI
+  #     - '16622:16622' # Companion Satellite (TCP)
+  #     - '16623:16623' # Companion Satellite (WS)
+  #   volumes:
+  #     - companion-config:/companion

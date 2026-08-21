@@ -1,29 +1,21 @@
+include:
+  - ./docker/control.yml
+  - ./docker/docker.yml
+
 networks:
   frontend:
     external: false
   backend:
     external: false
+  monitoring:
+    external: false
 
 volumes:
-  openavc-data:
   grafana_data:
   influxdb2-data:
   influxdb2-config:
-
+ 
 services:
-  openavc:
-    image: ghcr.io/open-avc/openavc:latest
-    container_name: openavc
-    network_mode: host
-    cap_add:
-      - NET_RAW
-    volumes:
-      - openavc-data:/data
-    restart: unless-stopped
-    # For serial/USB device passthrough, uncomment:
-    # devices:
-    #   - /dev/ttyUSB0:/dev/ttyUSB0
-  
   influxdb2:
     image: influxdb:2
     container_name: av_influxdb2
@@ -34,8 +26,8 @@ services:
       DOCKER_INFLUXDB_INIT_USERNAME: admin
       DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_PASSWORD}
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_ADMIN_TOKEN}
-      DOCKER_INFLUXDB_INIT_ORG: docs
-      DOCKER_INFLUXDB_INIT_BUCKET: home
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUXDB_ORG}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUXDB_BUCKET}
     volumes:
       - type: volume
         source: influxdb2-data
@@ -96,3 +88,25 @@ services:
       context: ./telegraf
       dockerfile: Dockerfile
 
+  unpoller:
+    restart: unless-stopped
+    image: ghcr.io/unpoller/unpoller:${POLLER_TAG}
+    depends_on:
+      - grafana
+      - influxdb
+      - telegraf
+    environment:
+      - UP_INFLUXDB_DB=${INFLUXDB_DB}
+      - UP_INFLUXDB_USER=admin
+      - UP_INFLUXDB_PASS=${INFLUXDB_PASSWORD}
+      - UP_INFLUXDB_ORG=${INFLUXDB_ORG}
+      - UP_INFLUXDB_BUCKET=${INFLUXDB_BUCKET}
+      - UP_INFLUXDB_AUTH_TOKEN=${INFLUXDB_ADMIN_TOKEN}
+      - UP_INFLUXDB_URL=http://av_influxdb2:8086
+      - UP_UNIFI_DEFAULT_USER=${UNIFI_USER}
+      - UP_UNIFI_DEFAULT_PASS=${UNIFI_PASS}
+      - UP_UNIFI_DEFAULT_URL=${UNIFI_URL}
+      - UP_POLLER_DEBUG=${POLLER_DEBUG}
+      - UP_UNIFI_DEFAULT_SAVE_DPI=${POLLER_SAVE_DPI}
+    volumes:
+      - ./unpoller/up.conf:/etc/unpoller/up.conf

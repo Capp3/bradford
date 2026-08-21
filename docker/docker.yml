@@ -1,0 +1,62 @@
+volumes:
+  portainer_data:
+    name: portainer_data
+
+services:
+  portainer:
+    container_name: portainer
+    image: portainer/portainer-ce:lts
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    ports:
+      - 9443:9443
+      - 9000:9000
+    networks:
+      - monitoring
+  
+  socket-proxy:
+    container_name: socket-proxy
+    image: tecnativa/docker-socket-proxy
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    # profiles: ["core", "all"]# debug,info,notice,warning,err,crit,alert,emerg
+      ## Variables match the URL prefix (i.e. AUTH blocks access to /auth/* parts of the API, etc.).
+      # 0 to revoke access.
+      # 1 to grant access.
+      ## Granted by Default
+    privileged: true # true for VM. false for unprivileged LXC container on Proxmox.
+    ports:
+      - 2375:2375 # Do not expose this to the internet with port forwarding
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    environment:
+      - LOG_LEVEL=info
+      - EVENTS=1
+      - PING=1
+      - VERSION=1
+      ## Revoked by Default
+      # Security critical
+      - AUTH=0
+      - SECRETS=1
+      - POST=1 # Watchtower
+      # Not always needed
+      - BUILD=1
+      - COMMIT=1
+      - CONFIGS=1
+      - CONTAINERS=1 # Traefik, Portainer, etc.
+      - DISTRIBUTION=1
+      - EXEC=1
+      - IMAGES=1 # Portainer
+      - INFO=1 # Portainer
+      - NETWORKS=1 # Portainer
+      - NODES=1
+      - PLUGINS=1
+      - SERVICES=1 # Portainer
+      - SESSION=1
+      - SWARM=1
+      - SYSTEM=1
+      - TASKS=1 # Portainer
+      - VOLUMES=1 # Portainer

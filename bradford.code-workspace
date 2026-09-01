@@ -1,0 +1,82 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.autoSave": "afterDelay",
+		"files.autoSaveDelay": 1000,
+		"editor.formatOnSave": true,
+		"editor.codeActionsOnSave": {
+			"source.fixAll": "explicit",
+			"source.organizeImports": "explicit"
+		},
+		"files.associations": {
+			"**/ansible/**/*.yml": "ansible",
+			"**/ansible/**/*.yaml": "ansible",
+			"**/ansible/hosts": "ansible",
+			"**/ansible/ansible.cfg": "ini",
+			"compose.yml": "dockercompose",
+			"compose.yaml": "dockercompose",
+			"**/docker/*.yml": "dockercompose",
+			"**/docker/*.yaml": "dockercompose",
+			"**/grafana/**/*.yml": "yaml",
+			"**/grafana/**/*.yaml": "yaml",
+			"**/grafana/**/*.json": "json",
+			"**/telegraf/**/*.conf": "toml",
+			"**/telegraf/Dockerfile": "dockerfile",
+			"**/telegraf/**/*.sh": "shellscript",
+			"env.sample": "dotenv",
+			".env": "dotenv",
+			"*.env": "dotenv"
+		},
+		"[python]": {
+			"editor.defaultFormatter": "charliermarsh.ruff",
+			"editor.formatOnSave": true,
+			"editor.codeActionsOnSave": {
+				"source.fixAll.ruff": "explicit",
+				"source.organizeImports.ruff": "explicit"
+			}
+		},
+		"[yaml]": {
+			"editor.defaultFormatter": "redhat.vscode-yaml",
+			"editor.tabSize": 2,
+			"editor.insertSpaces": true
+		},
+		"[ansible]": {
+			"editor.defaultFormatter": "redhat.ansible",
+			"editor.tabSize": 2,
+			"editor.insertSpaces": true
+		},
+		"[dockercompose]": {
+			"editor.defaultFormatter": "redhat.vscode-yaml",
+			"editor.tabSize": 2,
+			"editor.insertSpaces": true
+		},
+		"[json]": {
+			"editor.defaultFormatter": "vscode.json-language-features"
+		},
+		"[jsonc]": {
+			"editor.defaultFormatter": "vscode.json-language-features"
+		},
+		"[toml]": {
+			"editor.defaultFormatter": "tamasfe.even-better-toml"
+		},
+		"[makefile]": {
+			"editor.insertSpaces": false,
+			"editor.formatOnSave": false
+		},
+		"[ini]": {
+			"editor.formatOnSave": false
+		}
+	},
+	"extensions": {
+		"recommendations": [
+			"redhat.ansible",
+			"redhat.vscode-yaml",
+			"charliermarsh.ruff",
+			"tamasfe.even-better-toml"
+		]
+	}
+}

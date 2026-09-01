@@ -1,0 +1,13 @@
+---
+roles:
+  - name: geerlingguy.security
+  - name: geerlingguy.docker
+  - name: geerlingguy.firewall
+  - name: viasite-ansible.zsh
+  - name: gantsign.oh-my-zsh
+  - name: geerlingguy.nfs
+
+collections:
+  - name: community.docker
+  - name: community.general
+  - name: ansible.posix

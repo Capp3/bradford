@@ -1,0 +1,146 @@
+---
+# Flattened host vars for kilolink-bradford.
+# Connection, role defaults, and host overrides live here (no group_vars).
+# Vault lookups: ssh_hosts.apple.*, git.user_name, git.email.
+
+# =============================================================================
+# Connection
+# =============================================================================
+ansible_host: "{{ ssh_hosts.kilolink.ip }}"
+ansible_user: "{{ ssh_hosts.kilolink.user }}"
+ansible_connection: ssh
+ansible_become_user: root
+ansible_become_pass: "{{ ssh_hosts.kilolink.password }}"
+
+# =============================================================================
+# Host
+# =============================================================================
+hostname_hostname: kilolink
+ansible_user_home: "/home/{{ ansible_user }}"
+
+# =============================================================================
+# Security (geerlingguy.security)
+# =============================================================================
+# SSH keys are managed on the host; Ansible does not deploy them.
+security_ssh_password_authentication: "yes"
+security_sudoers_passwordless:
+  - "{{ ansible_user }}"
+  - "root"
+
+# =============================================================================
+# Firewall (geerlingguy.firewall)
+# =============================================================================
+firewall_state: stopped
+firewall_enabled_at_boot: false
+
+# =============================================================================
+# APT
+# =============================================================================
+apt_ppa_repos: []
+
+apt_install:
+  # drivers
+  - ubuntu-drivers-common
+  # build / vcs
+  - build-essential
+  - gcc
+  - make
+  - git
+  # python
+  - python3-venv
+  - python3-pip
+  - python3-dev
+  - python3-setuptools
+  - python3-full
+  # github cli
+  - gh
+  # apt transport
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg-agent
+  - software-properties-common
+  # tools
+  - p7zip-full
+  - btop
+  - zsh
+  - just
+  # nfs / cifs
+  - nfs-common
+  - cifs-utils
+  - nfs-kernel-server
+  - chroma
+
+# =============================================================================
+# Docker (geerlingguy.docker)
+# =============================================================================
+docker_users:
+  - "{{ ansible_user }}" # Primary user Docker access
+  - root # Administrative Docker access
+
+# =============================================================================
+# zsh (viasite-ansible.zsh, gantsign.oh-my-zsh)
+# =============================================================================
+# Antigen/zsh for the SSH login user, not root (ansible_user_id under become).
+zsh_user: "{{ ansible_user }}"
+
+oh_my_zsh_theme: jispwoso
+oh_my_zsh_update_mode: auto
+users:
+  - username: "{{ ansible_user }}"
+    oh_my_zsh:
+      theme: jispwoso
+      update_mode: auto
+      update_frequency: 7
+      write_zshrc: true
+  - username: "root"
+    oh_my_zsh:
+      theme: jispwoso
+      update_mode: auto
+      update_frequency: 7
+      write_zshrc: true
+
+oh_my_zsh_plugins:
+  - aliases
+  - ansible
+  - colorize
+  - common-aliases
+  - docker
+  - docker-compose
+  - dotenv
+  - git
+  - github
+  - history
+  - python
+  - uv
+  - ssh
+  - ubuntu
+
+# =============================================================================
+# Workspace paths
+# =============================================================================
+user_paths:
+  - "{{ ansible_user_home }}/code" # Source code repositories
+  - "{{ ansible_user_home }}/media" # Media processing workspace
+  - "{{ ansible_user_home }}/backups" # Backup storage root
+
+# =============================================================================
+# Git
+# =============================================================================
+git_user_name: "{{ git.user_name }}"
+git_email: "{{ git.email }}" # Defined in vault/secrets.yml
+
+git_settings:
+  editor: "nano" # Lightweight editor for commits
+  use_github_cli: true # Enable GitHub CLI integration
+  github_cli_path: "/usr/bin/gh" # GitHub CLI binary location
+  use_ssh: true # Keep HTTPS for public clones (antigen); use git@github.com: URLs explicitly for SSH repos
+  pull_rebase: false # Use merge strategy for pulls
+  push_default: "simple" # Conservative push behavior
+  auto_setup_remote: true # Automatically configure remotes
+
+# GitHub SSH host keys (from https://api.github.com/meta) for git over SSH
+github_ssh_known_host_keys:
+  - github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
+  - github.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
+  - github.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCj7ndNxQowgcQnjshcLrqPEiiphnt+VTTvDP6mHBL9j1aNUkY4Ue1gvwnGLVlOhGeYrnZaMgRK6+PKCUXaDbC7qtbW8gIkhL7aGCsOr/C56SJMy/BCZfxd1nWzAOxSDPgVsmerOBYfNqltV9/hWCqBywINIR+5dIg6JTJ72pcEpEjcYgXkE2YEFXV1JHnsKgbLWNlhScqb2UmyRkQyytRLtL+38TGxkxCflmO+5Z8CSSNY7GidjMIZ7Q4zMjA2n1nGrlTDkzwDCsw+wqFPGQA179cnfGWOWRVruj16z6XyvxvjJwbz0wQZ75XK5tKSb7FNyeIEs4TT4jk+S4dhPeAUC5y+bDYirYgM4GC7uEnztnZyaVWQ7B381AK4Qdrwt51ZqExKbQpTUNn+EjqoTwvqNj4kqx5QUCI0ThS/YkOxJCXmPUWZbhjpCg56i+2aB6CmK2JGhn57K5mj0MNdBXA4/WnwH6XoPWJzK5Nyu2zB3nAZp+S5hpQs+p1vN1/wsjk=

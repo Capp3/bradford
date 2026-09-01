@@ -1,0 +1,32 @@
+---
+- name: Ensure user SSH directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_user_home }}/.ssh"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0700"
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: git_settings.use_ssh | default(false)
+
+- name: Add GitHub SSH host keys for login user
+  ansible.builtin.known_hosts:
+    name: github.com
+    key: "{{ item }}"
+    path: "{{ ansible_user_home }}/.ssh/known_hosts"
+    state: present
+  loop: "{{ github_ssh_known_host_keys }}"
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: git_settings.use_ssh | default(false)
+
+- name: Add GitHub SSH host keys system-wide
+  ansible.builtin.known_hosts:
+    name: github.com
+    key: "{{ item }}"
+    path: /etc/ssh/ssh_known_hosts
+    state: present
+  loop: "{{ github_ssh_known_host_keys }}"
+  become: true
+  when: git_settings.use_ssh | default(false)

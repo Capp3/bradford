@@ -1,0 +1,122 @@
+---
+- name: Add APT PPA repositories
+  ansible.builtin.apt_repository:
+    repo: "ppa:{{ item }}"
+    state: present
+  loop: "{{ apt_ppa_repos | default([]) }}"
+  when: apt_ppa_repos | default([]) | length > 0
+
+- name: Install APT packages
+  ansible.builtin.apt:
+    name: "{{ apt_install }}"
+    state: present
+    update_cache: true
+  when: apt_install is defined
+
+- name: Create user workspace directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0755"
+  loop: "{{ user_paths | default([]) }}"
+  when: user_paths is defined
+
+- name: Configure Git user name
+  community.general.git_config:
+    name: user.name
+    value: "{{ git_user_name }}"
+    scope: global
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: git_user_name is defined
+
+- name: Configure Git email
+  community.general.git_config:
+    name: user.email
+    value: "{{ git_email }}"
+    scope: global
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: git_email is defined
+
+- name: Configure Git editor
+  community.general.git_config:
+    name: core.editor
+    value: "{{ git_settings.editor }}"
+    scope: global
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: git_settings.editor is defined
+
+- name: Configure Git pull rebase
+  community.general.git_config:
+    name: pull.rebase
+    value: "{{ git_settings.pull_rebase | string | lower }}"
+    scope: global
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: git_settings.pull_rebase is defined
+
+- name: Configure Git push default
+  community.general.git_config:
+    name: push.default
+    value: "{{ git_settings.push_default }}"
+    scope: global
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: git_settings.push_default is defined
+
+- name: Configure Git auto setup remote
+  community.general.git_config:
+    name: push.autoSetupRemote
+    value: "{{ git_settings.auto_setup_remote | string | lower }}"
+    scope: global
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: git_settings.auto_setup_remote is defined
+
+- name: Rewrite GitHub HTTPS URLs to SSH
+  community.general.git_config:
+    name: url.ssh://git@github.com/.insteadOf
+    value: https://github.com/
+    scope: global
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: git_settings.use_ssh | default(false)
+
+- name: Remove GitHub HTTPS to SSH rewrite
+  community.general.git_config:
+    name: url.ssh://git@github.com/.insteadOf
+    scope: global
+    state: absent
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: not (git_settings.use_ssh | default(false))
+
+- name: Remove GitHub HTTPS to SSH rewrite from root
+  community.general.git_config:
+    name: url.ssh://git@github.com/.insteadOf
+    scope: global
+    state: absent
+  become: true
+  when: not (git_settings.use_ssh | default(false))
+
+- name: Configure GitHub SSH host keys
+  ansible.builtin.include_tasks: tasks/github-known-hosts.yml
+  when: git_settings.use_ssh | default(false)
+
+- name: Configure GitHub CLI credential helper
+  community.general.git_config:
+    name: credential.helper
+    value: "!gh auth git-credential"
+    scope: global
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: git_settings.use_github_cli | default(false)
+
+- name: Set system hostname
+  ansible.builtin.hostname:
+    name: "{{ hostname_hostname }}"
+  when: hostname_hostname is defined

@@ -1,0 +1,94 @@
+[project]
+name = "bradford"
+version = "0.1.0"
+description = "My Ansible Deployment"
+readme = "README.md"
+keywords = ['python']
+requires-python = ">=3.12,<4.0"
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "ansible>=11.8.0",
+    "ansible-lint>=25.7.0",
+    "markdown>=3.5.2",
+    "mkdocs>=1.6.1",
+    "mypy>=1.17.1",
+    "ruff>=0.12.8",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit>=3.6.0",
+]
+
+[project.urls]
+Repository = "https://github.com/Capp3/ansible-pi-infra-nia"
+
+[tool.mypy]
+disallow_untyped_defs = true
+disallow_any_unimported = true
+no_implicit_optional = true
+check_untyped_defs = true
+warn_return_any = true
+warn_unused_ignores = true
+show_error_codes = true
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+fix = true
+
+[tool.ruff.lint]
+select = [
+    # flake8-2020
+    "YTT",
+    # flake8-bandit
+    "S",
+    # flake8-bugbear
+    "B",
+    # flake8-builtins
+    "A",
+    # flake8-comprehensions
+    "C4",
+    # flake8-debugger
+    "T10",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+    # mccabe
+    "C90",
+    # pycodestyle
+    "E", "W",
+    # pyflakes
+    "F",
+    # pygrep-hooks
+    "PGH",
+    # pyupgrade
+    "UP",
+    # ruff
+    "RUF",
+    # tryceratops
+    "TRY",
+]
+ignore = [
+    # LineTooLong
+    "E501",
+    # DoNotAssignLambda
+    "E731",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+
+[tool.ruff.format]
+preview = true
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.3.0",
+]

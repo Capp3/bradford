@@ -1,0 +1,129 @@
+---
+- name: Configure GitHub SSH known hosts
+  ansible.builtin.include_tasks: tasks/github-known-hosts.yml
+
+- name: Ensure root SSH directory exists
+  ansible.builtin.file:
+    path: /root/.ssh
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+  become: true
+
+- name: Generate GitHub ed25519 key for login user
+  ansible.builtin.command: # noqa command-instead-of-module
+    argv:
+      - ssh-keygen
+      - -t
+      - ed25519
+      - -C
+      - "{{ hostname_hostname }}-{{ ansible_user }}-github"
+      - -f
+      - "{{ ansible_user_home }}/.ssh/id_ed25519_github"
+      - -N
+      - ""
+    creates: "{{ ansible_user_home }}/.ssh/id_ed25519_github"
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Restrict GitHub SSH private key for login user
+  ansible.builtin.file:
+    path: "{{ ansible_user_home }}/.ssh/id_ed25519_github"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0600"
+  become: true
+
+- name: Restrict GitHub SSH public key for login user
+  ansible.builtin.file:
+    path: "{{ ansible_user_home }}/.ssh/id_ed25519_github.pub"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0644"
+  become: true
+
+- name: Install GitHub SSH private key for root
+  ansible.builtin.copy:
+    src: "{{ ansible_user_home }}/.ssh/id_ed25519_github"
+    dest: /root/.ssh/id_ed25519_github
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0600"
+  become: true
+
+- name: Install GitHub SSH public key for root
+  ansible.builtin.copy:
+    src: "{{ ansible_user_home }}/.ssh/id_ed25519_github.pub"
+    dest: /root/.ssh/id_ed25519_github.pub
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+
+- name: Pin GitHub SSH identity for login user
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_user_home }}/.ssh/config"
+    create: true
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0600"
+    marker: "# {mark} ANSIBLE MANAGED github.com identity"
+    block: |
+      Host github.com
+        HostName github.com
+        User git
+        IdentityFile ~/.ssh/id_ed25519_github
+        IdentitiesOnly yes
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Pin GitHub SSH identity for root
+  ansible.builtin.blockinfile:
+    path: /root/.ssh/config
+    create: true
+    owner: root
+    group: root
+    mode: "0600"
+    marker: "# {mark} ANSIBLE MANAGED github.com identity"
+    block: |
+      Host github.com
+        HostName github.com
+        User git
+        IdentityFile ~/.ssh/id_ed25519_github
+        IdentitiesOnly yes
+  become: true
+
+- name: Rewrite GitHub HTTPS URLs to SSH system-wide
+  community.general.git_config:
+    name: url.ssh://git@github.com/.insteadOf
+    value: https://github.com/
+    scope: system
+  become: true
+
+- name: Rewrite GitHub HTTPS URLs to SSH for login user
+  community.general.git_config:
+    name: url.ssh://git@github.com/.insteadOf
+    value: https://github.com/
+    scope: global
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Rewrite GitHub HTTPS URLs to SSH for root
+  community.general.git_config:
+    name: url.ssh://git@github.com/.insteadOf
+    value: https://github.com/
+    scope: global
+  become: true
+
+- name: Read GitHub SSH public key
+  ansible.builtin.slurp:
+    src: "{{ ansible_user_home }}/.ssh/id_ed25519_github.pub"
+  register: github_ssh_pubkey
+  become: true
+
+- name: Show GitHub SSH public key
+  ansible.builtin.debug:
+    msg: "{{ github_ssh_pubkey.content | b64decode | trim }}"

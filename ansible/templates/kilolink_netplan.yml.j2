@@ -1,0 +1,17 @@
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    enp1s0:
+      addresses:
+                - "{{ ssh_hosts.kilolink.ip }}/24"
+            nameservers:
+                addresses: [10.42.101.1, 8.8.8.8]
+            routes:
+                - to: default
+                  via: 10.42.101.1
+      dhcp6: yes
+    enp2s0:
+      activation-mode: off
+      dhcp4: no
+      dhcp6: no

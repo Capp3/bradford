@@ -77,34 +77,8 @@
   become_user: "{{ ansible_user }}"
   when: git_settings.auto_setup_remote is defined
 
-- name: Rewrite GitHub HTTPS URLs to SSH
-  community.general.git_config:
-    name: url.ssh://git@github.com/.insteadOf
-    value: https://github.com/
-    scope: global
-  become: true
-  become_user: "{{ ansible_user }}"
-  when: git_settings.use_ssh | default(false)
-
-- name: Remove GitHub HTTPS to SSH rewrite
-  community.general.git_config:
-    name: url.ssh://git@github.com/.insteadOf
-    scope: global
-    state: absent
-  become: true
-  become_user: "{{ ansible_user }}"
-  when: not (git_settings.use_ssh | default(false))
-
-- name: Remove GitHub HTTPS to SSH rewrite from root
-  community.general.git_config:
-    name: url.ssh://git@github.com/.insteadOf
-    scope: global
-    state: absent
-  become: true
-  when: not (git_settings.use_ssh | default(false))
-
-- name: Configure GitHub SSH host keys
-  ansible.builtin.include_tasks: tasks/github-known-hosts.yml
+- name: Configure GitHub SSH
+  ansible.builtin.include_tasks: tasks/github-ssh.yml
   when: git_settings.use_ssh | default(false)
 
 - name: Configure GitHub CLI credential helper
@@ -119,4 +93,59 @@
 - name: Set system hostname
   ansible.builtin.hostname:
     name: "{{ hostname_hostname }}"
+  register: hostname_result
   when: hostname_hostname is defined
+
+- name: Configure mDNS with Avahi
+  ansible.builtin.include_tasks: tasks/mdns.yml
+
+- name: Deploy bashrc for login user and root
+  ansible.builtin.template:
+    src: bashrc.j2
+    dest: "{{ item.home }}/.bashrc"
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: "0644"
+    backup: true
+  loop:
+    - name: "{{ ansible_user }}"
+      home: "{{ ansible_user_home }}"
+    - name: root
+      home: /root
+
+- name: Set bash as login shell
+  ansible.builtin.user:
+    name: "{{ item }}"
+    shell: /bin/bash
+  loop:
+    - "{{ ansible_user }}"
+    - root
+
+- name: Remove leftover oh-my-zsh directories
+  ansible.builtin.file:
+    path: "{{ item.home }}/.oh-my-zsh"
+    state: absent
+  loop:
+    - name: "{{ ansible_user }}"
+      home: "{{ ansible_user_home }}"
+    - name: root
+      home: /root
+
+- name: Remove leftover zshrc
+  ansible.builtin.file:
+    path: "{{ item.home }}/.zshrc"
+    state: absent
+  loop:
+    - name: "{{ ansible_user }}"
+      home: "{{ ansible_user_home }}"
+    - name: root
+      home: /root
+
+- name: Deploy kilolink netplan configuration
+  ansible.builtin.template:
+    src: "{{ netplan_config_src }}"
+    dest: /etc/netplan/55-bradford-config.yaml
+    owner: root
+    group: root
+    mode: "0600"
+  when: netplan_config_src is defined

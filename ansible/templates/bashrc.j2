@@ -1,0 +1,69 @@
+# Managed by Ansible. Local extras belong in ~/.bash_aliases.
+
+# If not running interactively, don't do anything
+case $- in
+  *i*) ;;
+  *) return ;;
+esac
+
+# History
+HISTCONTROL=ignoreboth
+shopt -s histappend
+HISTSIZE=10000
+HISTFILESIZE=20000
+shopt -s checkwinsize
+shopt -s globstar 2>/dev/null || true
+
+# Color prompt: green user, red root
+if [ -n "${TERM:-}" ] && [ "${TERM}" != "dumb" ]; then
+  if [ "${EUID}" -eq 0 ]; then
+    PS1='\[\033[01;31m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+  else
+    PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+  fi
+else
+  PS1='\u@\h:\w\$ '
+fi
+
+# Colors for ls / grep / ip
+if [ -x /usr/bin/dircolors ]; then
+  if [ -r "${HOME}/.dircolors" ]; then
+    eval "$(dircolors -b "${HOME}/.dircolors")"
+  else
+    eval "$(dircolors -b)"
+  fi
+  alias ls='ls --color=auto'
+  alias grep='grep --color=auto'
+  alias fgrep='fgrep --color=auto'
+  alias egrep='egrep --color=auto'
+  alias ip='ip --color=auto'
+fi
+
+# Navigation and listing
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+alias ..='cd ..'
+alias ...='cd ../..'
+
+# Git
+alias g='git'
+alias gs='git status'
+alias gd='git diff'
+alias gl='git log --oneline -20'
+
+# Docker
+alias dps='docker ps'
+alias dcu='docker compose up -d'
+alias dcd='docker compose down'
+
+{% if git_settings.editor is defined %}
+export EDITOR='{{ git_settings.editor }}'
+export VISUAL='{{ git_settings.editor }}'
+{% endif %}
+
+# Keep machine-local aliases out of this managed file
+if [ -f "${HOME}/.bash_aliases" ]; then
+  # shellcheck disable=SC1091
+  . "${HOME}/.bash_aliases"
+fi

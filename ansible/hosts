@@ -1,11 +1,12 @@
-all:
-    children:
-        linux:
-            inquirypi-bradford:
-            kilolink-bradford:
-        ubuntu:
-            inquirypi-bradford:
-        rpi:
-            inquirypi-bradford:
-        mac:
-            macmini-bradford:
+[linux]
+inquirypi-bradford
+kilolink-bradford
+[ubuntu]
+inquirypi-bradford
+[rpi]
+inquirypi-bradford
+[mac]
+macmini-bradford
+[docker]
+kilolink-bradford
+inquirypi-bradford

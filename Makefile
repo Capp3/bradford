@@ -7,11 +7,11 @@ SHELL := /bin/bash
 ANSIBLE_DIR := ansible
 UV := uv run
 HOST ?= all
-PLAYBOOK := provision-kilolink.yml
+PLAYBOOK := provision-system.yml
 VAULT := vault/secrets.yml
 
 .PHONY: help build up down pull clean \
-	install validate syntax lint inventory list-tasks ping provision \
+	install validate syntax lint inventory list-tasks ping provision github-pubkey \
 	vault-edit vault-view vault-encrypt vault-decrypt
 
 help: ## Show this help
@@ -64,7 +64,11 @@ ping: ## Ping hosts (HOST=all)
 	cd $(ANSIBLE_DIR) && $(UV) ansible $(HOST) -m ping
 
 provision: ## Run the kilolink playbook
-	cd $(ANSIBLE_DIR) && $(UV) ansible-playbook $(PLAYBOOK)
+	cd $(ANSIBLE_DIR) && $(UV) ansible-playbook -vv $(PLAYBOOK)
+
+github-pubkey: ## Print GitHub SSH public keys from linux hosts
+	cd $(ANSIBLE_DIR) && $(UV) ansible linux -m command -a 'cat ~/.ssh/id_ed25519_github.pub'
+	cd $(ANSIBLE_DIR) && $(UV) ansible linux -b -m command -a 'cat /root/.ssh/id_ed25519_github.pub'
 
 # --- Vault ---
 

@@ -15,7 +15,7 @@
 		"files.associations": {
 			"**/ansible/**/*.yml": "ansible",
 			"**/ansible/**/*.yaml": "ansible",
-			"**/ansible/hosts": "ansible",
+			"**/ansible/hosts": "ini",
 			"**/ansible/ansible.cfg": "ini",
 			"compose.yml": "dockercompose",
 			"compose.yaml": "dockercompose",

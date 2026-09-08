@@ -9,11 +9,9 @@ words:
   - dockercompose
   - dotenv
   - fgrep
-  - gantsign
   - geerlingguy
   - inquirypi
   - isort
-  - jispwoso
   - kilolink
   - macmini
   - mccabe
@@ -29,6 +27,5 @@ words:
   - tamasfe
   - tryceratops
   - venv
-  - viasite
 ignoreWords: []
 import: []

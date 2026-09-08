@@ -1,0 +1,35 @@
+---
+- name: Install Avahi mDNS packages
+  ansible.builtin.apt:
+    name:
+      - avahi-daemon
+      - avahi-utils
+      - libnss-mdns
+    state: present
+    update_cache: true
+
+- name: Enable and start Avahi daemon
+  ansible.builtin.systemd:
+    name: avahi-daemon
+    enabled: true
+    state: started
+
+- name: Ensure NSS mDNS resolution before dns or resolve
+  ansible.builtin.replace:
+    path: /etc/nsswitch.conf
+    regexp: '^hosts:(?!.*\bmdns4_minimal\b)(.*?)(\s+)(resolve|dns)\b'
+    replace: 'hosts:\1\2mdns4_minimal [NOTFOUND=return] \3'
+
+- name: Publish SSH service via Avahi
+  ansible.builtin.template:
+    src: avahi_ssh.service.j2
+    dest: /etc/avahi/services/ssh.service
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Restart Avahi after hostname change
+  ansible.builtin.systemd:
+    name: avahi-daemon
+    state: restarted
+  when: hostname_result is defined and hostname_result.changed

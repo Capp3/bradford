@@ -10,13 +10,6 @@
   roles:
     - role: geerlingguy.security
 
-- name: Setup Oh My Zsh
-  hosts: linux
-  vars_files:
-    - vault/secrets.yml
-  roles:
-    - role: gantsign.oh-my-zsh
-
 - name: Setup Docker
   hosts: docker
   become: true
@@ -34,4 +27,3 @@
     - vault/secrets.yml
   roles:
     - role: geerlingguy.firewall
-      when: firewall_enabled | default(true)

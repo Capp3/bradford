@@ -3,3 +3,9 @@ prometheus/data
 grafana/data
 **/.env*
 **/data/
+.vault_pass
+.env
+.venv/
+*.log
+.ansible/
+uv.lock

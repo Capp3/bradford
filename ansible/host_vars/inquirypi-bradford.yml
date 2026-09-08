@@ -1,24 +1,19 @@
 ---
-# Flattened host vars for kilolink-bradford.
-# Connection, role defaults, and host overrides live here (no group_vars).
-# Vault lookups: ssh_hosts.apple.*, git.user_name, git.email.
-
 # =============================================================================
 # Connection
 # =============================================================================
-ansible_host: "{{ ssh_hosts.kilolink.ip }}"
-ansible_user: "{{ ssh_hosts.kilolink.user }}"
-ansible_connection: ssh
+# ansible_host: "{{ ssh_hosts.inquirypi.ip }}"
+ansible_user: "{{ ssh_hosts.inquirypi.user }}"
+ansible_connection: local
 ansible_become_user: root
 ansible_become_exe: sudo
-ansible_become_pass: "{{ ssh_hosts.kilolink.password }}"
+ansible_become_pass: "{{ ssh_hosts.inquirypi.password }}"
 
 # =============================================================================
 # Host
 # =============================================================================
-hostname_hostname: kilolink
+hostname_hostname: inquirypi
 ansible_user_home: "/home/{{ ansible_user }}"
-netplan_config_src: kilolink_netplan.yml.j2
 
 # =============================================================================
 # Security (geerlingguy.security)
@@ -41,8 +36,6 @@ firewall_enabled_at_boot: false
 apt_ppa_repos: []
 
 apt_install:
-  # drivers
-  - ubuntu-drivers-common
   # build / vcs
   - build-essential
   - gcc
@@ -61,16 +54,6 @@ apt_install:
   - ca-certificates
   - curl
   - gnupg-agent
-  - software-properties-common
-  # tools
-  - p7zip-full
-  - btop
-  - just
-  # nfs / cifs
-  - nfs-common
-  - cifs-utils
-  - nfs-kernel-server
-  - chroma
 
 # =============================================================================
 # Docker (geerlingguy.docker)

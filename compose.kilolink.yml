@@ -1,0 +1,10 @@
+include:
+  - ./docker/docker.yml
+
+networks:
+  frontend:
+    external: false
+  backend:
+    external: false
+  monitoring:
+    external: false
